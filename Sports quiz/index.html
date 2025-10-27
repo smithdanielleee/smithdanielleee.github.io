@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Daily Nebraskan News Quiz</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles for a polished look */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f7f7f7;
+        }
+        .quiz-container {
+            max-width: 800px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            background: white;
+        }
+        .question-card {
+            border-left: 4px solid #cc0000; /* UNL Red Accent */
+        }
+        input[type="radio"]:checked + label {
+            background-color: #fef2f2;
+            border-color: #ef4444;
+            box-shadow: 0 0 0 2px #fca5a5;
+        }
+        .submit-button {
+            transition: all 0.2s;
+        }
+        .submit-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8 min-h-screen flex items-center justify-center">
+
+    <div id="quiz-app" class="quiz-container w-full mx-auto rounded-xl p-6 md:p-10">
+
+        <!-- Header -->
+        <h1 class="text-4xl font-bold text-center mb-3 text-gray-800">The Daily Nebraskan Quiz</h1>
+        <p class="text-center text-xl text-gray-600 mb-8">Test your knowledge of the latest campus and local news! (5 Random Questions)</p>
+        
+        <!-- Quiz Content Area -->
+        <div id="quiz-area">
+            <!-- Questions will be rendered here -->
+        </div>
+
+        <!-- Submit Button -->
+        <button onclick="submitQuiz()" id="submit-btn" class="submit-button w-full bg-red-700 text-white font-semibold py-3 mt-8 rounded-lg hover:bg-red-800 focus:outline-none focus:ring-4 focus:ring-red-300">
+            Submit Quiz
+        </button>
+
+        <!-- Results Modal/Area -->
+        <div id="results-area" class="mt-8 hidden p-6 border-2 border-dashed border-red-300 bg-red-50 rounded-lg">
+            <h2 class="text-2xl font-bold text-red-700 mb-3">Quiz Results</h2>
+            <p id="score-text" class="text-xl font-medium text-gray-800"></p>
+            <div id="feedback-area" class="mt-4 space-y-3">
+                <!-- Detailed feedback will be inserted here -->
+            </div>
+            <button onclick="initQuiz()" class="mt-6 bg-gray-200 text-gray-700 font-semibold py-2 px-4 rounded-lg hover:bg-gray-300">
+                Play Again
+            </button>
+        </div>
+
+    </div>
+
+    <script>
+        // Use a standard constant for the Firebase App ID, even though we aren't using Firestore here, 
+        // to maintain consistency with the required environment variables check.
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id'; 
+
+        // 1. QUIZ DATA (From the previous step's JSON file)
+        const quizData = {
+            "quizTitle": "The Daily Nebraskan Local News Quiz",
+            "questions": [
+                { "id": 1, "type": "true_false", "question": "The Bar's partial owner, Seth Regan, originally bought into the bar when he was 30 years old.", "answer": "False" },
+                { "id": 2, "type": "true_false", "question": "The name 'The Bar' originated because Seth Regan and his friend Gregg List always called the space 'the bar' while they were working on fixing it up before opening.", "answer": "True" },
+                { "id": 3, "type": "true_false", "question": "The Bar is often referred to by the nickname 'The bar, The Bar,' which Seth Regan has now learned to embrace.", "answer": "True" },
+                { "id": 4, "type": "true_false", "question": "Chloe Best became the manager of The Bar after working there for two years as a bartender.", "answer": "False" },
+                { "id": 5, "type": "true_false", "question": "Dream in Vintage is a recently opened vintage clothing and accessories store located in downtown Lincoln's Haymarket district.", "answer": "True" },
+                { "id": 6, "type": "true_false", "question": "The owner of Dream in Vintage, Jessica Romero, was studying fashion design at the University of Nebraska-Lincoln when she started her business.", "answer": "False" },
+                { "id": 7, "type": "true_false", "question": "The Bar's unique trait, according to the current manager, is that it serves as everyone's last stop for the night.", "answer": "True" },
+                { "id": 8, "type": "true_false", "question": "According to the advice from Seth Regan, college students should focus only on their schoolwork because those moments won't last forever.", "answer": "False" },
+                { "id": 9, "type": "true_false", "question": "A night out on O Street in downtown Lincoln, including Ubers, covers, drinks, and food, is estimated to cost anywhere from $50–$70.", "answer": "True" },
+                { "id": 10, "type": "true_false", "question": "Duffy's offers half-price drinks for service industry workers every Tuesday for their Industry Night.", "answer": "False" },
+                { "id": 11, "type": "multiple_choice", "question": "The Bar has been a staple of the Lincoln college bar scene since it opened in what year?", "options": ["1995", "2000", "2005", "2010"], "answer": "2000" },
+                { "id": 12, "type": "multiple_choice", "question": "What two items can you get for $2 each at The Bar on Mondays?", "options": ["Tallboy and mystery shot", "Well whiskey and dirty Shirley single", "Apple pie shot and vodka single", "Tequila shot and Long Island ice tea single"], "answer": "Apple pie shot and vodka single" },
+                { "id": 13, "type": "multiple_choice", "question": "What is the average expected cost of a single drink at a bar on O Street?", "options": ["$3", "$5", "$7", "$10"], "answer": "$7" },
+                { "id": 14, "type": "multiple_choice", "question": "What deal does Brothers Bar and Grill offer on Wednesday nights starting at 9 p.m.?", "options": ["$3 Fireball shots", "$2 Tallboys", "25 cent wings", "$3 Double wells"], "answer": "25 cent wings" },
+                { "id": 15, "type": "multiple_choice", "question": "What is the usual cover charge expected at most O Street bars?", "options": ["$2", "$5", "$10", "No cover charge"], "answer": "$5" },
+                { "id": 16, "type": "multiple_choice", "question": "What daily special does The Bar offer on Tuesdays?", "options": ["25 cent wings", "Tallboys and Long Island ice tea singles for $2", "Top shelf liquor for $3", "$3 Vegas bombs"], "answer": "Tallboys and Long Island ice tea singles for $2" },
+                { "id": 17, "type": "multiple_choice", "question": "Jessica Romero, the owner of Dream in Vintage, got the idea to open her store after:", "options": ["Her brother became a professional thrifter.", "She noticed a post that Great Plains Vintage was planning on moving locations.", "She was offered a manager position at a vintage store.", "She ran out of money in college and needed a new source of income."], "answer": "She noticed a post that Great Plains Vintage was planning on moving locations." },
+                { "id": 18, "type": "multiple_choice", "question": "Dream in Vintage is located in which building in the Haymarket?", "options": ["The Railyard", "The Grand Manse", "The Creamery Building", "The Lincoln Center"], "answer": "The Creamery Building" },
+                { "id": 19, "type": "multiple_choice", "question": "What styles of clothing does Dream in Vintage aim to sell?", "options": ["Only Y2K-inspired items.", "Mainly designer vintage apparel.", "Men's, women's, and unisex clothing ranging from Y2K to cottage core.", "Only baggy t-shirts and hoodies."], "answer": "Men's, women's, and unisex clothing ranging from Y2K to cottage core." },
+                { "id": 20, "type": "multiple_choice", "question": "What is a specialty item offered at The Bar on Fridays for $3?", "options": ["Fireball shot", "Domestic pitcher", "Blue Kamikaze fishbowl", "Vegas bomb"], "answer": "Vegas bomb" }
+            ]
+        };
+
+        // Global variable to hold the 5 questions currently being displayed
+        let selectedQuestions = [];
+        const NUM_QUESTIONS = 5;
+        const quizArea = document.getElementById('quiz-area');
+        const resultsArea = document.getElementById('results-area');
+        const submitBtn = document.getElementById('submit-btn');
+
+        /**
+         * Selects 5 random questions from the full list.
+         * @returns {Array} An array of 5 randomly selected question objects.
+         */
+        function selectRandomQuestions() {
+            const allQuestions = [...quizData.questions];
+            // Simple shuffle and slice to get 5 unique random questions
+            for (let i = allQuestions.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [allQuestions[i], allQuestions[j]] = [allQuestions[j], allQuestions[i]];
+            }
+            return allQuestions.slice(0, NUM_QUESTIONS);
+        }
+
+        /**
+         * Renders the questions into the quiz area.
+         * @param {Array} questions - The 5 question objects to display.
+         */
+        function renderQuestions(questions) {
+            quizArea.innerHTML = ''; // Clear previous questions
+            let htmlContent = '';
+
+            questions.forEach((q, index) => {
+                const questionNumber = index + 1;
+                let optionsHtml = '';
+                const name = `q${q.id}`; // Use actual ID to link question to answer
+
+                if (q.type === 'true_false') {
+                    const options = ["True", "False"];
+                    optionsHtml = options.map(option => `
+                        <div class="flex items-center">
+                            <input type="radio" id="${name}-${option}" name="${name}" value="${option}" class="hidden peer">
+                            <label for="${name}-${option}" class="w-full cursor-pointer p-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors duration-150 ease-in-out">
+                                ${option}
+                            </label>
+                        </div>
+                    `).join('');
+                } else if (q.type === 'multiple_choice') {
+                    optionsHtml = q.options.map(option => `
+                        <div class="flex items-center">
+                            <input type="radio" id="${name}-${option.replace(/\s/g, '-')}" name="${name}" value="${option}" class="hidden peer">
+                            <label for="${name}-${option.replace(/\s/g, '-')}" class="w-full cursor-pointer p-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors duration-150 ease-in-out">
+                                ${option}
+                            </label>
+                        </div>
+                    `).join('');
+                }
+
+                htmlContent += `
+                    <div class="question-card mb-6 p-4 md:p-6 bg-white rounded-xl shadow-sm">
+                        <p class="text-lg font-semibold mb-4 text-gray-800">${questionNumber}. ${q.question}</p>
+                        <div class="space-y-3">
+                            ${optionsHtml}
+                        </div>
+                    </div>
+                `;
+            });
+
+            quizArea.innerHTML = htmlContent;
+        }
+
+        /**
+         * Initializes the quiz: selects questions and renders the UI.
+         */
+        window.initQuiz = function() {
+            resultsArea.classList.add('hidden');
+            submitBtn.classList.remove('hidden');
+            
+            selectedQuestions = selectRandomQuestions();
+            renderQuestions(selectedQuestions);
+            // Scroll to the top of the quiz
+            document.getElementById('quiz-app').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        /**
+         * Submits the quiz, scores it, and displays results.
+         */
+        window.submitQuiz = function() {
+            let correctCount = 0;
+            const feedbackArea = document.getElementById('feedback-area');
+            feedbackArea.innerHTML = ''; // Clear previous feedback
+
+            selectedQuestions.forEach((q, index) => {
+                const name = `q${q.id}`;
+                const selectedInput = document.querySelector(`input[name="${name}"]:checked`);
+                const questionNumber = index + 1;
+                
+                let isCorrect = false;
+                let userChoice = 'No Answer';
+                
+                if (selectedInput) {
+                    userChoice = selectedInput.value;
+                    isCorrect = (userChoice === q.answer);
+                }
+
+                if (isCorrect) {
+                    correctCount++;
+                    feedbackArea.innerHTML += `
+                        <div class="flex items-start p-3 bg-green-50 rounded-lg border border-green-200">
+                            <span class="text-green-600 font-bold mr-3">✅ Q${questionNumber}:</span>
+                            <p class="text-gray-700">${q.question}</p>
+                            <span class="ml-auto text-green-600 font-medium">Correct!</span>
+                        </div>
+                    `;
+                } else {
+                    const incorrectClass = userChoice === 'No Answer' ? 'bg-yellow-50 border-yellow-200' : 'bg-red-50 border-red-200';
+                    const userMessage = userChoice === 'No Answer' ? 'Skipped' : `Your Answer: ${userChoice}`;
+
+                    feedbackArea.innerHTML += `
+                        <div class="flex flex-col p-3 ${incorrectClass} rounded-lg border">
+                            <p class="text-red-600 font-bold mb-1">❌ Q${questionNumber}: ${q.question}</p>
+                            <p class="text-gray-700 text-sm">Correct Answer: <span class="font-medium text-green-700">${q.answer}</span></p>
+                            <p class="text-gray-700 text-sm">${userMessage}</p>
+                        </div>
+                    `;
+                }
+            });
+
+            // Display overall score
+            const scoreText = `You scored ${correctCount} out of ${NUM_QUESTIONS}!`;
+            document.getElementById('score-text').textContent = scoreText;
+
+            // Show results and hide submit button
+            resultsArea.classList.remove('hidden');
+            submitBtn.classList.add('hidden');
+
+            // Scroll to results
+            resultsArea.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Start the quiz when the page loads
+        window.onload = initQuiz;
+
+    </script>
+</body>
+</html>

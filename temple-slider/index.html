@@ -3,180 +3,136 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Image Comparison: The Temple</title>
+    <title>UNL Temple Building Changes</title>
     <style>
         /* CSS for the Image Comparison Slider */
         :root {
-            /* Initial value for the slider: 50% */
-            --slider-value: 50%; 
+            /* Initial position: 50% */
+            --slider-value: 50%;
         }
 
         body {
-            font-family: sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #f4f4f4;
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
             display: flex;
-            flex-direction: column;
+            justify-content: center;
             align-items: center;
-            padding-bottom: 20px;
+            min-height: 100vh;
+            flex-direction: column;
         }
 
         h1 {
-            text-align: center;
-            margin: 20px 10px 10px 10px;
             color: #333;
-            font-size: 1.5em;
+            margin-bottom: 10px;
+            text-align: center;
+            padding: 0 10px;
         }
 
         .instructions {
-            text-align: center;
+            background-color: #e0e0e0;
+            padding: 10px 15px;
             margin-bottom: 20px;
-            padding: 0 15px;
+            border-radius: 5px;
             color: #555;
-            font-size: 0.95em;
+            text-align: center;
+            max-width: 600px;
+            font-size: 0.9em;
         }
 
-        .comparison-slider {
+        .comparison-container {
             position: relative;
-            max-width: 900px; 
-            width: 95%;
-            margin: 0 auto;
+            width: 90%; /* Responsive width */
+            max-width: 800px; /* Max width for desktop */
+            /* Set a fixed aspect ratio to prevent jumpiness as images load */
+            aspect-ratio: 16 / 9; 
             overflow: hidden;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            border: 4px solid #fff;
         }
 
-        .comparison-image-wrapper {
-            /* CRITICAL: Must be relative to contain absolute children */
-            position: relative; 
-            display: grid;
-            grid-template-areas: "images";
-        }
-
-        /* --- CORE IMAGE STYLES (Pinning All Elements) --- */
-        .comparison-image {
-            /* Pin all images exactly to the top-left corner of the wrapper */
-            position: absolute; 
-            top: 0;
-            left: 0;
-            width: 100%;
-            /* Use min-height to ensure the wrapper gets vertical space from the images */
-            min-height: 200px; 
-            height: 100%; /* Fill container height */
-            display: block;
-            grid-area: images;
-            -webkit-user-select: none; 
-            -moz-user-select: none;
-            -ms-user-select: none;
-            user-select: none;
-        }
-
-        /* BOTTOM IMAGE (New Photo) */
-        .image-bottom {
-            z-index: 1;
-        }
-
-        /* TOP CLIPPER (Crops the Old Photo) */
-        .image-top {
-            /* Clipper controls the width of the visibility window */
-            width: var(--slider-value); 
-            
-            grid-area: images;
-            z-index: 2;
-            overflow: hidden; 
-            
-            /* Pin the clipper to the same spot as the image */
-            position: absolute; 
-            top: 0;
-            left: 0; 
-            height: 100%; /* Must match image height */
-        }
-
-        /* TOP IMAGE (Old Photo, inside the clipper) */
-        .image-top .comparison-image {
-            /* This image is also pinned to the exact same spot (left: 0)
-               and its visibility is limited only by the parent clipper's width. 
-               This is the key to preventing movement. */
-            position: absolute; 
-            top: 0;
-            left: 0; 
-            width: 100%; 
-            height: 100%;
-        }
-
-        /* SLIDER/HANDLE STYLING */
-        
-        .slider-wrap {
+        .image {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            z-index: 3;
-            pointer-events: none; 
+            object-fit: cover; /* Ensures image covers container while maintaining aspect ratio */
         }
 
+        .image-after {
+            /* The width of the top image is controlled by the CSS variable from the slider */
+            width: var(--slider-value);
+            /* Add a subtle visual indication that this is the image being clipped */
+            border-right: 2px solid #fff; 
+            box-sizing: border-box;
+        }
+
+        /* The range input is placed on top of the images and styled as the slider handle/line */
         .slider-input {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            margin: 0;
-            padding: 0;
             cursor: ew-resize;
-            opacity: 0; 
+            background: transparent;
             z-index: 10;
-            pointer-events: auto; 
+            margin: 0;
+            /* Resetting default input appearance */
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
         }
 
-        .slider-line {
-            position: absolute;
-            left: var(--slider-value);
-            top: 0;
-            bottom: 0;
-            width: 4px;
-            background-color: white;
-            transform: translateX(-50%);
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-            pointer-events: none; 
+        /* Style the slider track to create the divider line */
+        .slider-input::-webkit-slider-runnable-track {
+            background: transparent;
+            height: 4px;
         }
 
-        .slider-handle {
-            position: absolute;
-            top: 50%;
-            left: 50%;
+        .slider-input::-moz-range-track {
+            background: transparent;
+            height: 4px;
+        }
+
+        /* Style the slider thumb to create the handle */
+        .slider-input::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
             width: 40px;
             height: 40px;
             border-radius: 50%;
-            background-color: white;
-            border: 4px solid #333;
-            color: #333;
-            font-size: 20px;
-            text-align: center;
-            line-height: 32px;
-            transform: translate(-50%, -50%);
-            pointer-events: none; 
+            background: #FFD700; /* Gold/Yellow for visibility */
+            border: 3px solid #fff;
+            cursor: grab;
+            margin-top: -18px; /* Center the thumb vertically over the track */
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
         }
 
-        .slider-line .slider-handle {
-            left: 0;
-            transform: translate(-50%, -50%);
+        .slider-input::-moz-range-thumb {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #FFD700;
+            border: 3px solid #fff;
+            cursor: grab;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
         }
 
-        /* Image Labels */
-        .image-label {
+        /* Labels to indicate which image is which */
+        .label {
             position: absolute;
             padding: 5px 10px;
-            background-color: rgba(0, 0, 0, 0.7);
-            color: white;
+            background-color: rgba(0, 0, 0, 0.6);
+            color: #fff;
             font-weight: bold;
+            border-radius: 3px;
             font-size: 0.8em;
-            border-radius: 4px;
-            z-index: 4;
+            z-index: 5;
         }
-        
+
         .label-before {
             top: 10px;
             left: 10px;
@@ -190,51 +146,41 @@
 </head>
 <body>
 
-    <h1>Compare "The Temple": Historic View Clipped to Reveal Modern View</h1>
-    <p class="instructions">
-        **Instructions:** **Click/Tap and drag** the vertical handle left or right. The slider clips the **Historic (Old)** photo to reveal the **Modern (New)** photo underneath.
-    </p>
+    <h1>Check out the changes to UNL's Temple Building</h1>
     
-    <div class="comparison-slider">
-        <div class="comparison-image-wrapper">
-            <img class="comparison-image image-bottom" 
-                 src="TempleNew.jpg" 
-                 alt="The Temple building, modern color photo with new car">
-            
-            <div class="image-top">
-                <img class="comparison-image image-after" 
-                     src="TempleOld.jpg" 
-                     alt="The Temple building, historic black and white photo with old cars">
-            </div>
-            
-            <span class="image-label label-before">Historic (Top Layer)</span>
-            <span class="image-label label-after">Modern (Bottom Layer)</span>
-        </div>
+    <div class="instructions">
+        **Instructions:** Click and drag the **gold circle** on the line or **slide the bar** (tap and drag on mobile) to see the 'Before' and 'After' views of the Temple Building.
+    </div>
+
+    <div class="comparison-container">
+        <img class="image image-before" src="TempleOld.jpg" alt="Temple Building Before Renovation">
+        <span class="label label-before">BEFORE</span>
+
+        <img class="image image-after" src="TempleNew.jpg" alt="Temple Building After Renovation">
+        <span class="label label-after">AFTER</span>
         
-        <div class="slider-wrap">
-            <input type="range" min="0" max="100" value="50" class="slider-input" aria-label="Image comparison slider">
-            
-            <div class="slider-line">
-                <div class="slider-handle">&#x21d4;</div> </div>
-        </div>
+        <input type="range" min="0" max="100" value="50" class="slider-input" id="imageSlider" aria-label="Image comparison slider">
+
     </div>
 
     <script>
+        // JavaScript for the Image Comparison Slider
         document.addEventListener('DOMContentLoaded', () => {
-            const comparisonSlider = document.querySelector('.comparison-slider');
-            const sliderInput = comparisonSlider.querySelector('.slider-input');
-            const root = document.documentElement;
+            const sliderContainer = document.querySelector('.comparison-container');
+            const sliderInput = document.getElementById('imageSlider');
 
+            // Function to update the CSS variable based on the slider value
             function updateSlider(value) {
-                // Set the CSS variable which controls clipping width and slider line position
-                root.style.setProperty('--slider-value', `${value}%`);
+                // The slider value is a number 0-100, which translates directly to a percentage
+                sliderContainer.style.setProperty('--slider-value', `${value}%`);
             }
 
-            sliderInput.addEventListener('input', (event) => {
-                updateSlider(event.target.value);
+            // Update the slider when the user moves the input (on desktop or touch)
+            sliderInput.addEventListener('input', (e) => {
+                updateSlider(e.target.value);
             });
-
-            // Initial set on load
+            
+            // Set initial position on load (important for initial display)
             updateSlider(sliderInput.value);
         });
     </script>

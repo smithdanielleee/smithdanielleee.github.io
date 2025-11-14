@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Image Comparison: UNL's School of Music</title>
+    <title>Image Comparison: The Temple</title>
     <style>
         /* CSS for the Image Comparison Slider */
         :root {
@@ -53,41 +53,29 @@
         }
 
         .comparison-image {
-            /* The image inside the clipper must always be 100% of the main container's width */
-            width: 100%; 
+            width: 100%;
             height: auto;
             display: block;
             grid-area: images;
-            -webkit-user-select: none; /* Disable text selection on images */
+            -webkit-user-select: none; 
             -moz-user-select: none;
             -ms-user-select: none;
             user-select: none;
         }
 
-        /* The bottom image ('2014') is the full-width backdrop */
+        /* The bottom image is the full-width backdrop (Old/Before) */
         .image-bottom {
             z-index: 1;
         }
 
-        /* --- THE FIX IS HERE --- */
-        /* The image-top DIV acts as the clipper */
+        /* The image-top DIV acts as the clipper (New/After) */
         .image-top {
             /* This DIV is layered on top, and its width is clipped by the slider-value */
             width: var(--slider-value); 
             grid-area: images; /* Layer it in the same grid area */
             z-index: 2;
-            overflow: hidden; /* **CRITICAL: Hides the part of the image that extends past the new width** */
+            overflow: hidden; 
         }
-        
-        /* The image *inside* the .image-top div must maintain its full width */
-        .image-top .comparison-image {
-            /* No change needed here if .comparison-image is 100% of the main wrapper */
-            /* If we didn't have grid-area, we might need to set it to 100% of the wrapper
-               and use negative margins, but with the current structure, 
-               the image inside the clipper div is already forced to be 100% width
-               of the *wrapper* by the grid, and it only gets clipped by the parent's overflow. */
-        }
-        /* --- END OF FIX --- */
 
         /* SLIDER/HANDLE STYLING */
         
@@ -98,7 +86,7 @@
             width: 100%;
             height: 100%;
             z-index: 3;
-            pointer-events: none; /* Allows clicks/taps to pass through to the range input */
+            pointer-events: none; 
         }
 
         .slider-input {
@@ -110,9 +98,9 @@
             margin: 0;
             padding: 0;
             cursor: ew-resize;
-            opacity: 0; /* Hide the native input range element */
+            opacity: 0; 
             z-index: 10;
-            pointer-events: auto; /* Re-enable pointer events for the input */
+            pointer-events: auto; 
         }
 
         .slider-line {
@@ -124,7 +112,7 @@
             background-color: white;
             transform: translateX(-50%);
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-            pointer-events: none; /* Should not interfere with image/input */
+            pointer-events: none; 
         }
 
         .slider-handle {
@@ -141,7 +129,7 @@
             text-align: center;
             line-height: 32px;
             transform: translate(-50%, -50%);
-            pointer-events: none; /* Should not interfere with image/input */
+            pointer-events: none; 
         }
 
         /* Position the handle based on the slider value */
@@ -175,25 +163,25 @@
 </head>
 <body>
 
-    <h1>Check out the changes to UNL's School of Music from 2014 to 2025</h1>
+    <h1>Compare "The Temple": Then and Now</h1>
     <p class="instructions">
-        **Instructions:** **Click/Tap and drag** the vertical handle left or right to compare the two images.
+        **Instructions:** **Click/Tap and drag** the vertical handle left or right to compare the old (left) and new (right) views.
     </p>
     
     <div class="comparison-slider">
         <div class="comparison-image-wrapper">
             <img class="comparison-image image-bottom" 
-                 src="campusoctober2014.jpg" 
-                 alt="UNL School of Music, October 2014">
+                 src="TempleOld.jpg" 
+                 alt="The Temple building, historic black and white photo with old cars">
             
             <div class="image-top">
                 <img class="comparison-image image-after" 
-                     src="campusmarch2025.jpg" 
-                     alt="UNL School of Music, March 2025">
+                     src="TempleNew.jpg" 
+                     alt="The Temple building, modern color photo with new car">
             </div>
             
-            <span class="image-label label-before">2014</span>
-            <span class="image-label label-after">2025</span>
+            <span class="image-label label-before">Historic (Approx. 1940s)</span>
+            <span class="image-label label-after">Modern (2020s)</span>
         </div>
         
         <div class="slider-wrap">

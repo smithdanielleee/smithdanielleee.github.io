@@ -1,103 +1,166 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Image Comparison: UNL's School of Music</title>
-    <style>
-        /* CSS for the Image Comparison Slider */
-        :root {
-            /* Initial value for the slider: 50% */
-            --slider-value: 50%; 
-        }
+<style>
+    /* CSS for the Image Comparison Slider */
+    :root {
+        /* Initial value for the slider: 50% */
+        --slider-value: 50%; 
+    }
 
-        /* (Body and Header styling omitted for brevity—they are fine) */
-        body {
-            font-family: sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f4f4f4;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding-bottom: 20px;
-        }
+    body {
+        font-family: sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f4f4f4;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding-bottom: 20px;
+    }
 
-        h1 {
-            text-align: center;
-            margin: 20px 10px 10px 10px;
-            color: #333;
-            font-size: 1.5em;
-        }
+    h1 {
+        text-align: center;
+        margin: 20px 10px 10px 10px;
+        color: #333;
+        font-size: 1.5em;
+    }
 
-        .instructions {
-            text-align: center;
-            margin-bottom: 20px;
-            padding: 0 15px;
-            color: #555;
-            font-size: 0.95em;
-        }
+    .instructions {
+        text-align: center;
+        margin-bottom: 20px;
+        padding: 0 15px;
+        color: #555;
+        font-size: 0.95em;
+    }
 
-        .comparison-slider {
-            position: relative;
-            max-width: 900px;
-            width: 95%;
-            margin: 0 auto;
-            overflow: hidden;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-            border-radius: 8px;
-        }
+    .comparison-slider {
+        position: relative;
+        max-width: 900px; /* Max width of the container */
+        width: 95%;
+        margin: 0 auto;
+        overflow: hidden;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        border-radius: 8px;
+    }
 
-        .comparison-image-wrapper {
-            /* This creates the stacking effect */
-            display: grid;
-            grid-template-areas: "images";
-        }
+    .comparison-image-wrapper {
+        /* This is what stacks the images */
+        display: grid;
+        grid-template-areas: "images";
+    }
 
-        .comparison-image {
-            width: 100%;
-            height: auto;
-            display: block;
-            grid-area: images;
-            -webkit-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
-            user-select: none;
-        }
+    .comparison-image {
+        width: 100%;
+        height: auto;
+        display: block;
+        grid-area: images;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+    }
 
-        /* The top image ('2025') is clipped by the slider-value */
-        .image-top {
-            /* The key clipping style: width is controlled by JS/CSS variable */
-            width: var(--slider-value);
-            position: relative;
-            z-index: 2;
-            overflow: hidden; /* Clips the child image */
-        }
+    /* The top image ('2025') is clipped by the slider-value */
+    .image-top {
+        width: var(--slider-value);
+        position: relative;
+        z-index: 2;
+        overflow: hidden; /* This crops the image */
+    }
 
-        /* FIX: Ensure the clipped image inside .image-top is full size and positioned */
-        .image-top .comparison-image {
-            position: absolute; /* Take it out of flow */
-            top: 0;
-            left: 0;
-            /* Force it to be the same full width as the bottom image */
-            width: calc(100% / var(--slider-value) * 100);
-            /* This is a more complex way to anchor the image, a simpler fix is below */
-            width: 100%; 
-            max-width: 900px; /* Use the max-width of the slider-container */
-            /* The best way is to set its width to the max-width of the container */
-             /* I'm sticking to the simple fix for compatibility with the grid area */
-            width: 100%;
-             max-width: none;
-        }
+    /* *** FIX START *** This is the crucial step: 
+    It ensures the image inside the clipped container is absolutely 
+    positioned and stretches to 100% of the entire slider's width (not 
+    just the clipping container's width). This keeps it aligned with the 
+    bottom image.
+    */
+    .image-top .comparison-image {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%; /* Stretch it to the full width of the wrapper */
+        height: 100%;
+        max-width: none; /* Override any potential max-width limitations */
+    }
+    /* *** FIX END *** */
 
-        /* The original code for the top image inside the clipping container was correct 
-           if the images were the same size. The key is just anchoring it to the left.
-           We revert the .image-top .comparison-image width override as it's not needed 
-           with the grid layout, but ensure it's anchored. */
+    /* The bottom image ('2014') is the full-width backdrop */
+    .image-bottom {
+        z-index: 1;
+    }
 
+    /* SLIDER/HANDLE STYLING (These were generally fine) */
+    
+    .slider-wrap {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 3;
+        pointer-events: none;
+    }
 
-        .image-bottom {
-            z-index: 1;
-        }
+    .slider-input {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        cursor: ew-resize;
+        opacity: 0;
+        z-index: 10;
+        pointer-events: auto;
+    }
 
-        /* SLIDER/HANDLE STYLING (These are all correct for positioning the slider) */
+    .slider-line {
+        position: absolute;
+        left: var(--slider-value);
+        top: 0;
+        bottom: 0;
+        width: 4px;
+        background-color: white;
+        transform: translateX(-50%);
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        pointer-events: none;
+    }
+
+    .slider-handle {
+        position: absolute;
+        top: 50%;
+        left: 0;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background-color: white;
+        border: 4px solid #333;
+        color: #333;
+        font-size: 20px;
+        text-align: center;
+        line-height: 32px;
+        transform: translate(-50%, -50%);
+        pointer-events: none;
+    }
+
+    /* Image Labels (Fine) */
+    .image-label {
+        position: absolute;
+        padding: 5px 10px;
+        background-color: rgba(0, 0, 0, 0.7);
+        color: white;
+        font-weight: bold;
+        font-size: 0.8em;
+        border-radius: 4px;
+        z-index: 4;
+    }
+
+    .label-before {
+        top: 10px;
+        left: 10px;
+    }
+
+    .label-after {
+        top: 10px;
+        right: 10px;
+    }
+</style>

@@ -61,12 +61,20 @@
             object-fit: cover; /* Ensures image covers container while maintaining aspect ratio */
         }
 
-        .image-after {
-            /* The width of the top image is controlled by the CSS variable from the slider */
+        /*
+           The key change is here:
+           The 'image-old' (formerly 'image-after') is now on top and its width is controlled by the slider.
+           The 'image-new' (formerly 'image-before') is now the background image.
+        */
+        .image-old { /* This class is now for the image that gets "cropped" */
             width: var(--slider-value);
-            /* Add a subtle visual indication that this is the image being clipped */
             border-right: 2px solid #fff; 
             box-sizing: border-box;
+            z-index: 2; /* Ensure the 'old' image is on top of the 'new' image */
+        }
+        
+        .image-new { /* This class is now for the background image */
+            z-index: 1; 
         }
 
         /* The range input is placed on top of the images and styled as the slider handle/line */
@@ -78,7 +86,7 @@
             height: 100%;
             cursor: ew-resize;
             background: transparent;
-            z-index: 10;
+            z-index: 10; /* Ensure slider is on top of everything */
             margin: 0;
             /* Resetting default input appearance */
             -webkit-appearance: none;
@@ -133,12 +141,12 @@
             z-index: 5;
         }
 
-        .label-before {
+        .label-old { /* Changed label position */
             top: 10px;
             left: 10px;
         }
 
-        .label-after {
+        .label-new { /* Changed label position */
             top: 10px;
             right: 10px;
         }
@@ -153,11 +161,11 @@
     </div>
 
     <div class="comparison-container">
-        <img class="image image-before" src="TempleOld.jpg" alt="Temple Building Before Renovation">
-        <span class="label label-before">BEFORE</span>
+        <img class="image image-old" src="TempleOld.jpg" alt="Temple Building Before Renovation">
+        <span class="label label-old">BEFORE</span>
 
-        <img class="image image-after" src="TempleNew.jpg" alt="Temple Building After Renovation">
-        <span class="label label-after">AFTER</span>
+        <img class="image image-new" src="TempleNew.jpg" alt="Temple Building After Renovation">
+        <span class="label label-new">AFTER</span>
         
         <input type="range" min="0" max="100" value="50" class="slider-input" id="imageSlider" aria-label="Image comparison slider">
 

@@ -53,7 +53,7 @@
             grid-template-areas: "images";
         }
 
-        /* --- CORE IMAGE STYLES --- */
+        /* --- CORE IMAGE STYLES (Both images are full size and stacked) --- */
         .comparison-image {
             width: 100%;
             height: auto;
@@ -65,34 +65,36 @@
             user-select: none;
         }
 
-        /* The bottom image ('New') is the full-width backdrop (z-index 1) */
+        /* BOTTOM IMAGE (Fixed background: New Photo) */
         .image-bottom {
             z-index: 1;
         }
 
-        /* The image-top DIV acts as the clipper (Old photo on top) */
+        /* TOP CLIPPER (Crops the Old Photo) */
         .image-top {
-            /* FIX: The clipper width starts at 100% and shrinks by the slider value, 
-               making the OLD photo slide away from right to left. */
-            width: calc(100% - var(--slider-value)); 
+            /* FIX 1: The width is directly controlled by the slider value.
+               As slider-value increases (moves right), the clipper width increases. */
+            width: var(--slider-value); 
             
             grid-area: images;
             z-index: 2;
             overflow: hidden; 
             
-            position: relative; 
+            position: relative; /* Container for absolute image */
             height: auto; 
             top: 0;
-            left: 0; /* Anchor clipper to the left edge of the container */
+            left: 0; /* Anchor clipper to the LEFT edge */
         }
 
-        /* FIX: The image inside the clipper is pinned to the RIGHT side of the clipper 
-           to keep its right edge aligned with the slider. */
+        /* TOP IMAGE (Old Photo, pinned inside the clipper) */
         .image-top .comparison-image {
+            /* FIX 2: Pin the image to the LEFT edge of the clipper.
+               Since the clipper's width is increasing from the left, 
+               this reveals the image underneath from the left to the right. */
             position: absolute; 
             top: 0;
-            right: 0; /* Pin the image to the right side */
-            width: 100%; 
+            left: 0; 
+            width: 100%; /* Image stays full size (100% of wrapper), only the clipper hides it */
             height: 100%;
         }
 
@@ -124,7 +126,6 @@
 
         .slider-line {
             position: absolute;
-            /* The line position is still controlled by the slider value */
             left: var(--slider-value);
             top: 0;
             bottom: 0;
@@ -169,7 +170,6 @@
             z-index: 4;
         }
         
-        /* Labels swapped to match new layering */
         .label-before {
             top: 10px;
             left: 10px;
@@ -183,9 +183,9 @@
 </head>
 <body>
 
-    <h1>Compare "The Temple": Historic View Slides Away to Reveal Modern View</h1>
+    <h1>Compare "The Temple": Historic View Clipped to Reveal Modern View</h1>
     <p class="instructions">
-        **Instructions:** **Click/Tap and drag** the vertical handle left or right to slide the **historic** view (right) away and reveal the **modern** view (left).
+        **Instructions:** **Click/Tap and drag** the vertical handle left or right. The slider clips the **Historic (Old)** photo to reveal the **Modern (New)** photo underneath.
     </p>
     
     <div class="comparison-slider">
@@ -200,8 +200,8 @@
                      alt="The Temple building, historic black and white photo with old cars">
             </div>
             
-            <span class="image-label label-before">Modern (Revealed)</span>
-            <span class="image-label label-after">Historic (Sliding)</span>
+            <span class="image-label label-before">Historic (Sliding)</span>
+            <span class="image-label label-after">Modern (Underneath)</span>
         </div>
         
         <div class="slider-wrap">

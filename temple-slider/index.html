@@ -47,9 +47,8 @@
             border-radius: 8px;
         }
 
-        /* FIX 1: Simplify the layering structure */
         .comparison-image-wrapper {
-            position: relative; /* Essential for containing absolutely positioned children */
+            position: relative; 
             display: grid;
             grid-template-areas: "images";
         }
@@ -66,34 +65,33 @@
             user-select: none;
         }
 
-        /* The bottom image ('Old') is the full-width backdrop */
+        /* The bottom image ('New') is the full-width backdrop (z-index 1) */
         .image-bottom {
             z-index: 1;
         }
 
-        /* FIX 2: Ensure the clipper div is positioned correctly over the bottom image */
+        /* The image-top DIV acts as the clipper (Old photo on top) */
         .image-top {
-            /* This DIV is the clipper, controlled by the slider value */
-            width: var(--slider-value); 
+            /* FIX: The clipper width starts at 100% and shrinks by the slider value, 
+               making the OLD photo slide away from right to left. */
+            width: calc(100% - var(--slider-value)); 
+            
             grid-area: images;
             z-index: 2;
             overflow: hidden; 
             
-            /* Ensure the clipper div precisely overlays the bottom image */
             position: relative; 
             height: auto; 
             top: 0;
-            left: 0;
+            left: 0; /* Anchor clipper to the left edge of the container */
         }
 
-        /* FIX 3: The image inside the clipper MUST maintain 100% width relative to the full wrapper, 
-           not the clipped width of the .image-top container. */
+        /* FIX: The image inside the clipper is pinned to the RIGHT side of the clipper 
+           to keep its right edge aligned with the slider. */
         .image-top .comparison-image {
-            /* We use position: absolute to escape the grid flow, 
-               and force its width back to 100% of the comparison-slider container. */
             position: absolute; 
             top: 0;
-            left: 0;
+            right: 0; /* Pin the image to the right side */
             width: 100%; 
             height: 100%;
         }
@@ -126,6 +124,7 @@
 
         .slider-line {
             position: absolute;
+            /* The line position is still controlled by the slider value */
             left: var(--slider-value);
             top: 0;
             bottom: 0;
@@ -169,7 +168,8 @@
             border-radius: 4px;
             z-index: 4;
         }
-
+        
+        /* Labels swapped to match new layering */
         .label-before {
             top: 10px;
             left: 10px;
@@ -183,25 +183,25 @@
 </head>
 <body>
 
-    <h1>Compare "The Temple": Then and Now</h1>
+    <h1>Compare "The Temple": Historic View Slides Away to Reveal Modern View</h1>
     <p class="instructions">
-        **Instructions:** **Click/Tap and drag** the vertical handle left or right to compare the old (left) and new (right) views.
+        **Instructions:** **Click/Tap and drag** the vertical handle left or right to slide the **historic** view (right) away and reveal the **modern** view (left).
     </p>
     
     <div class="comparison-slider">
         <div class="comparison-image-wrapper">
             <img class="comparison-image image-bottom" 
-                 src="TempleOld.jpg" 
-                 alt="The Temple building, historic black and white photo with old cars">
+                 src="TempleNew.jpg" 
+                 alt="The Temple building, modern color photo with new car">
             
             <div class="image-top">
                 <img class="comparison-image image-after" 
-                     src="TempleNew.jpg" 
-                     alt="The Temple building, modern color photo with new car">
+                     src="TempleOld.jpg" 
+                     alt="The Temple building, historic black and white photo with old cars">
             </div>
             
-            <span class="image-label label-before">Historic (Approx. 1940s)</span>
-            <span class="image-label label-after">Modern (2020s)</span>
+            <span class="image-label label-before">Modern (Revealed)</span>
+            <span class="image-label label-after">Historic (Sliding)</span>
         </div>
         
         <div class="slider-wrap">

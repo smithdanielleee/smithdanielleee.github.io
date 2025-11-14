@@ -9,9 +9,6 @@
         :root {
             /* Initial value for the slider: 50% */
             --slider-value: 50%; 
-            /* Define the aspect ratio of your images (e.g., 60% for a standard 5:3 ratio) */
-            /* You may need to adjust this value (e.g., 66% or 75%) based on your image files' actual height/width */
-            --image-aspect-ratio: 65%;
         }
 
         body {
@@ -42,7 +39,7 @@
 
         .comparison-slider {
             position: relative;
-            max-width: 900px; /* Max width of the container */
+            max-width: 900px; 
             width: 95%;
             margin: 0 auto;
             overflow: hidden;
@@ -50,29 +47,23 @@
             border-radius: 8px;
         }
 
+        /* FIX 1: Simplify the layering structure */
         .comparison-image-wrapper {
+            position: relative; /* Essential for containing absolutely positioned children */
             display: grid;
             grid-template-areas: "images";
-            /* FIX 1: Use Padding-Top for fixed aspect ratio (Height is relative to Width) */
-            padding-top: var(--image-aspect-ratio); 
-            position: relative; /* Needed for absolute positioning of labels/images */
         }
 
-        /* --- CORE IMAGE STYLES (Positioning fix is applied here) --- */
+        /* --- CORE IMAGE STYLES --- */
         .comparison-image {
             width: 100%;
-            height: 100%;
-            /* Absolute positioning within the padding-top trick */
-            position: absolute; 
-            top: 0;
-            left: 0;
+            height: auto;
             display: block;
             grid-area: images;
             -webkit-user-select: none; 
             -moz-user-select: none;
             -ms-user-select: none;
             user-select: none;
-            object-fit: cover; /* Ensures image fills the area without distortion (can use 'contain' if needed) */
         }
 
         /* The bottom image ('Old') is the full-width backdrop */
@@ -80,26 +71,30 @@
             z-index: 1;
         }
 
-        /* The image-top DIV acts as the clipper (New/After) */
+        /* FIX 2: Ensure the clipper div is positioned correctly over the bottom image */
         .image-top {
+            /* This DIV is the clipper, controlled by the slider value */
             width: var(--slider-value); 
             grid-area: images;
             z-index: 2;
             overflow: hidden; 
-            /* Ensures the clipper div acts as a new positioning context relative to the wrapper */
-            position: absolute;
+            
+            /* Ensure the clipper div precisely overlays the bottom image */
+            position: relative; 
+            height: auto; 
             top: 0;
             left: 0;
-            height: 100%; /* FIX: Must match the height of the wrapper */
         }
 
-        /* FIX 2: Ensure the top image fills the clipping div and maintains 100% width relative to the full wrapper */
+        /* FIX 3: The image inside the clipper MUST maintain 100% width relative to the full wrapper, 
+           not the clipped width of the .image-top container. */
         .image-top .comparison-image {
-            /* The image inside the clipper must also be absolute */
+            /* We use position: absolute to escape the grid flow, 
+               and force its width back to 100% of the comparison-slider container. */
             position: absolute; 
-            left: 0;
             top: 0;
-            width: 100%; /* Refers to the full width of the main wrapper */
+            left: 0;
+            width: 100%; 
             height: 100%;
         }
 
@@ -224,6 +219,7 @@
             const root = document.documentElement;
 
             function updateSlider(value) {
+                // Set the CSS variable which controls clipping width and slider line position
                 root.style.setProperty('--slider-value', `${value}%`);
             }
 

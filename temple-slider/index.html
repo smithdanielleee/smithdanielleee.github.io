@@ -6,6 +6,12 @@
     <title>UNL Temple Building Changes</title>
     <style>
         /* CSS for the Image Comparison Slider */
+        :root {
+            /* Initial position: 50%. This controls the clip-path and divider position. */
+            --clip-position: 50%; 
+            --divider-width: 4px; /* Define divider width once */
+        }
+
         body {
             margin: 0;
             padding: 0;
@@ -38,8 +44,8 @@
 
         .comparison-container {
             position: relative;
-            width: 90%; /* Responsive width */
-            max-width: 800px; /* Max width for desktop */
+            width: 90%; 
+            max-width: 800px; 
             aspect-ratio: 16 / 9; 
             overflow: hidden;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
@@ -52,46 +58,30 @@
             left: 0;
             width: 100%;
             height: 100%;
-            object-fit: cover; 
+            object-fit: cover; /* Ensures images align and cover the container */
         }
 
-        /* * The image-old wrapper contains the full image but is clipped by 
-         * its width/left position. We use a container (wrapper) for the 
-         * top image to ensure the image itself doesn't move.
-         */
-        .image-old-wrapper {
-            position: absolute;
-            top: 0;
-            left: 0; /* JS will adjust this position */
-            width: 100%; 
-            height: 100%;
-            overflow: hidden; /* This crops the image-old content */
+        /* The top image (TempleOld.jpg) is clipped by the variable */
+        .image-old {
             z-index: 2;
+            /* Use clip-path to make the part of the image to the right of --clip-position invisible */
+            clip-path: inset(0 calc(100% - var(--clip-position)) 0 0);
         }
 
-        /* The image inside the wrapper must maintain full size */
-        .image-old-wrapper img {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        /* The actual divider line */
+        /* The divider line is positioned by the variable */
         .slider-divider {
             position: absolute;
             top: 0;
-            left: 50%; /* Initial position, JS controls this */
-            width: 4px; /* Thickness of the divider */
+            /* Position the divider exactly where the clipping occurs */
+            left: var(--clip-position); 
+            width: var(--divider-width);
             height: 100%;
-            background-color: #FFD700; /* Gold divider line */
+            background-color: #FFD700; 
             z-index: 5;
-            pointer-events: none; /* Allows clicks/touches to pass through to the slider input */
-            margin-left: -2px; /* Center the line */
+            margin-left: calc(-1 * var(--divider-width) / 2); /* Center the line */
+            pointer-events: none; /* Let clicks pass through to the slider input */
         }
-
+        
         /* The Range Input acts purely as the control mechanism */
         .slider-input {
             position: absolute;
@@ -101,11 +91,18 @@
             height: 100%;
             cursor: ew-resize;
             background: transparent;
-            z-index: 10; 
+            z-index: 10; /* Highest z-index to catch all mouse/touch events */
             margin: 0;
             -webkit-appearance: none;
             -moz-appearance: none;
             appearance: none;
+        }
+
+        /* Make the invisible track large enough to grab */
+        .slider-input::-webkit-slider-runnable-track,
+        .slider-input::-moz-range-track {
+            background: transparent;
+            height: 40px; /* Make the track tall enough to easily grab */
         }
 
         /* Style the slider thumb (the gold circle) */
@@ -118,11 +115,9 @@
             background: #FFD700; 
             border: 3px solid #fff;
             cursor: grab;
-            margin-top: -18px; 
+            margin-top: -20px; /* Center the thumb vertically */
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
-            /* Important: Position the thumb exactly where the vertical line is */
-            position: relative; 
-            left: -2px; /* Small adjustment to center visually */
+            /* Important: The thumb *is* the drag handle. It is perfectly aligned by the browser. */
         }
 
         .slider-input::-moz-range-thumb {
@@ -135,14 +130,6 @@
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
         }
 
-        /* Make the invisible track large enough to grab */
-        .slider-input::-webkit-slider-runnable-track,
-        .slider-input::-moz-range-track {
-            background: transparent;
-            height: 40px;
-        }
-
-
         /* Labels */
         .label {
             position: absolute;
@@ -152,7 +139,7 @@
             font-weight: bold;
             border-radius: 3px;
             font-size: 0.8em;
-            z-index: 15; /* Ensure labels are on top */
+            z-index: 15; 
         }
 
         .label-old {
@@ -176,15 +163,13 @@
 
     <div class="comparison-container">
         
-        <img class="image" src="TempleNew.jpg" alt="Temple Building After Renovation">
+        <img class="image image-new" src="TempleNew.jpg" alt="Temple Building After Renovation">
         <span class="label label-new">AFTER</span>
 
-        <div class="image-old-wrapper" id="imageOldWrapper">
-            <img class="image-old-content" src="TempleOld.jpg" alt="Temple Building Before Renovation">
-        </div>
+        <img class="image image-old" src="TempleOld.jpg" alt="Temple Building Before Renovation">
         <span class="label label-old">BEFORE</span>
         
-        <div class="slider-divider" id="sliderDivider"></div>
+        <div class="slider-divider"></div>
         
         <input type="range" min="0" max="100" value="50" class="slider-input" id="imageSlider" aria-label="Image comparison slider">
 
@@ -194,18 +179,12 @@
         // JavaScript for the Image Comparison Slider
         document.addEventListener('DOMContentLoaded', () => {
             const sliderInput = document.getElementById('imageSlider');
-            const wrapper = document.getElementById('imageOldWrapper');
-            const divider = document.getElementById('sliderDivider');
+            const root = document.documentElement; // Get the :root element
 
-            // Function to update the positions based on the slider value
+            // Function to update the CSS variable based on the slider value
             function updateSlider(percent) {
-                // 1. Move the vertical divider line
-                divider.style.left = `${percent}%`;
-
-                // 2. Clip the top image (TempleOld.jpg)
-                // We make the width of the wrapper equal to the slider position (percent)
-                // This clips the wrapper, revealing the image below.
-                wrapper.style.width = `${percent}%`;
+                // The slider value is a number 0-100, which translates directly to a percentage
+                root.style.setProperty('--clip-position', `${percent}%`);
             }
 
             // Update the slider when the user moves the input (on desktop or touch)

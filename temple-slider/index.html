@@ -9,6 +9,9 @@
         :root {
             /* Initial value for the slider: 50% */
             --slider-value: 50%; 
+            /* Define the aspect ratio of your images (e.g., 60% for a standard 5:3 ratio) */
+            /* You may need to adjust this value (e.g., 66% or 75%) based on your image files' actual height/width */
+            --image-aspect-ratio: 65%;
         }
 
         body {
@@ -50,18 +53,26 @@
         .comparison-image-wrapper {
             display: grid;
             grid-template-areas: "images";
+            /* FIX 1: Use Padding-Top for fixed aspect ratio (Height is relative to Width) */
+            padding-top: var(--image-aspect-ratio); 
+            position: relative; /* Needed for absolute positioning of labels/images */
         }
 
-        /* --- CORE IMAGE STYLES --- */
+        /* --- CORE IMAGE STYLES (Positioning fix is applied here) --- */
         .comparison-image {
             width: 100%;
-            height: auto;
+            height: 100%;
+            /* Absolute positioning within the padding-top trick */
+            position: absolute; 
+            top: 0;
+            left: 0;
             display: block;
             grid-area: images;
             -webkit-user-select: none; 
             -moz-user-select: none;
             -ms-user-select: none;
             user-select: none;
+            object-fit: cover; /* Ensures image fills the area without distortion (can use 'contain' if needed) */
         }
 
         /* The bottom image ('Old') is the full-width backdrop */
@@ -71,22 +82,24 @@
 
         /* The image-top DIV acts as the clipper (New/After) */
         .image-top {
-            /* 1. Sets the clipping boundary */
             width: var(--slider-value); 
             grid-area: images;
             z-index: 2;
             overflow: hidden; 
-            /* 2. CRITICAL FIX: Ensures the clipper div acts as a new positioning context */
-            position: relative; 
+            /* Ensures the clipper div acts as a new positioning context relative to the wrapper */
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%; /* FIX: Must match the height of the wrapper */
         }
 
-        /* CRITICAL FIX: Ensure the image inside the clipper always starts at the left edge
-           and has the full 100% width and height of the main wrapper. */
+        /* FIX 2: Ensure the top image fills the clipping div and maintains 100% width relative to the full wrapper */
         .image-top .comparison-image {
+            /* The image inside the clipper must also be absolute */
             position: absolute; 
             left: 0;
             top: 0;
-            width: 100%; 
+            width: 100%; /* Refers to the full width of the main wrapper */
             height: 100%;
         }
 
@@ -145,7 +158,6 @@
             pointer-events: none; 
         }
 
-        /* Position the handle based on the slider value */
         .slider-line .slider-handle {
             left: 0;
             transform: translate(-50%, -50%);
@@ -211,14 +223,10 @@
             const sliderInput = comparisonSlider.querySelector('.slider-input');
             const root = document.documentElement;
 
-            // Function to update the CSS variable and control the image clipping
             function updateSlider(value) {
-                // Update the CSS variable which controls the width of the top image (.image-top) 
-                // and the left position of the line (.slider-line).
                 root.style.setProperty('--slider-value', `${value}%`);
             }
 
-            // Listen for input changes (drag on desktop, swipe on mobile)
             sliderInput.addEventListener('input', (event) => {
                 updateSlider(event.target.value);
             });

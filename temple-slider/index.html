@@ -1,166 +1,231 @@
-<style>
-    /* CSS for the Image Comparison Slider */
-    :root {
-        /* Initial value for the slider: 50% */
-        --slider-value: 50%; 
-    }
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Comparison: UNL's School of Music</title>
+    <style>
+        /* CSS for the Image Comparison Slider */
+        :root {
+            /* Initial value for the slider: 50% */
+            --slider-value: 50%; 
+        }
 
-    body {
-        font-family: sans-serif;
-        margin: 0;
-        padding: 0;
-        background-color: #f4f4f4;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        padding-bottom: 20px;
-    }
+        body {
+            font-family: sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-bottom: 20px;
+        }
 
-    h1 {
-        text-align: center;
-        margin: 20px 10px 10px 10px;
-        color: #333;
-        font-size: 1.5em;
-    }
+        h1 {
+            text-align: center;
+            margin: 20px 10px 10px 10px;
+            color: #333;
+            font-size: 1.5em;
+        }
 
-    .instructions {
-        text-align: center;
-        margin-bottom: 20px;
-        padding: 0 15px;
-        color: #555;
-        font-size: 0.95em;
-    }
+        .instructions {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 0 15px;
+            color: #555;
+            font-size: 0.95em;
+        }
 
-    .comparison-slider {
-        position: relative;
-        max-width: 900px; /* Max width of the container */
-        width: 95%;
-        margin: 0 auto;
-        overflow: hidden;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-        border-radius: 8px;
-    }
+        .comparison-slider {
+            position: relative;
+            max-width: 900px; /* Max width of the container */
+            width: 95%;
+            margin: 0 auto;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+        }
 
-    .comparison-image-wrapper {
-        /* This is what stacks the images */
-        display: grid;
-        grid-template-areas: "images";
-    }
+        .comparison-image-wrapper {
+            display: grid;
+            grid-template-areas: "images";
+        }
 
-    .comparison-image {
-        width: 100%;
-        height: auto;
-        display: block;
-        grid-area: images;
-        -webkit-user-select: none;
-        -moz-user-select: none;
-        -ms-user-select: none;
-        user-select: none;
-    }
+        .comparison-image {
+            /* The image inside the clipper must always be 100% of the main container's width */
+            width: 100%; 
+            height: auto;
+            display: block;
+            grid-area: images;
+            -webkit-user-select: none; /* Disable text selection on images */
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
 
-    /* The top image ('2025') is clipped by the slider-value */
-    .image-top {
-        width: var(--slider-value);
-        position: relative;
-        z-index: 2;
-        overflow: hidden; /* This crops the image */
-    }
+        /* The bottom image ('2014') is the full-width backdrop */
+        .image-bottom {
+            z-index: 1;
+        }
 
-    /* *** FIX START *** This is the crucial step: 
-    It ensures the image inside the clipped container is absolutely 
-    positioned and stretches to 100% of the entire slider's width (not 
-    just the clipping container's width). This keeps it aligned with the 
-    bottom image.
-    */
-    .image-top .comparison-image {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%; /* Stretch it to the full width of the wrapper */
-        height: 100%;
-        max-width: none; /* Override any potential max-width limitations */
-    }
-    /* *** FIX END *** */
+        /* --- THE FIX IS HERE --- */
+        /* The image-top DIV acts as the clipper */
+        .image-top {
+            /* This DIV is layered on top, and its width is clipped by the slider-value */
+            width: var(--slider-value); 
+            grid-area: images; /* Layer it in the same grid area */
+            z-index: 2;
+            overflow: hidden; /* **CRITICAL: Hides the part of the image that extends past the new width** */
+        }
+        
+        /* The image *inside* the .image-top div must maintain its full width */
+        .image-top .comparison-image {
+            /* No change needed here if .comparison-image is 100% of the main wrapper */
+            /* If we didn't have grid-area, we might need to set it to 100% of the wrapper
+               and use negative margins, but with the current structure, 
+               the image inside the clipper div is already forced to be 100% width
+               of the *wrapper* by the grid, and it only gets clipped by the parent's overflow. */
+        }
+        /* --- END OF FIX --- */
 
-    /* The bottom image ('2014') is the full-width backdrop */
-    .image-bottom {
-        z-index: 1;
-    }
+        /* SLIDER/HANDLE STYLING */
+        
+        .slider-wrap {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 3;
+            pointer-events: none; /* Allows clicks/taps to pass through to the range input */
+        }
 
-    /* SLIDER/HANDLE STYLING (These were generally fine) */
+        .slider-input {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            cursor: ew-resize;
+            opacity: 0; /* Hide the native input range element */
+            z-index: 10;
+            pointer-events: auto; /* Re-enable pointer events for the input */
+        }
+
+        .slider-line {
+            position: absolute;
+            left: var(--slider-value);
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background-color: white;
+            transform: translateX(-50%);
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            pointer-events: none; /* Should not interfere with image/input */
+        }
+
+        .slider-handle {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: white;
+            border: 4px solid #333;
+            color: #333;
+            font-size: 20px;
+            text-align: center;
+            line-height: 32px;
+            transform: translate(-50%, -50%);
+            pointer-events: none; /* Should not interfere with image/input */
+        }
+
+        /* Position the handle based on the slider value */
+        .slider-line .slider-handle {
+            left: 0;
+            transform: translate(-50%, -50%);
+        }
+
+        /* Image Labels */
+        .image-label {
+            position: absolute;
+            padding: 5px 10px;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            font-weight: bold;
+            font-size: 0.8em;
+            border-radius: 4px;
+            z-index: 4;
+        }
+
+        .label-before {
+            top: 10px;
+            left: 10px;
+        }
+
+        .label-after {
+            top: 10px;
+            right: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Check out the changes to UNL's School of Music from 2014 to 2025</h1>
+    <p class="instructions">
+        **Instructions:** **Click/Tap and drag** the vertical handle left or right to compare the two images.
+    </p>
     
-    .slider-wrap {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        z-index: 3;
-        pointer-events: none;
-    }
+    <div class="comparison-slider">
+        <div class="comparison-image-wrapper">
+            <img class="comparison-image image-bottom" 
+                 src="campusoctober2014.jpg" 
+                 alt="UNL School of Music, October 2014">
+            
+            <div class="image-top">
+                <img class="comparison-image image-after" 
+                     src="campusmarch2025.jpg" 
+                     alt="UNL School of Music, March 2025">
+            </div>
+            
+            <span class="image-label label-before">2014</span>
+            <span class="image-label label-after">2025</span>
+        </div>
+        
+        <div class="slider-wrap">
+            <input type="range" min="0" max="100" value="50" class="slider-input" aria-label="Image comparison slider">
+            
+            <div class="slider-line">
+                <div class="slider-handle">&#x21d4;</div> </div>
+        </div>
+    </div>
 
-    .slider-input {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        margin: 0;
-        padding: 0;
-        cursor: ew-resize;
-        opacity: 0;
-        z-index: 10;
-        pointer-events: auto;
-    }
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const comparisonSlider = document.querySelector('.comparison-slider');
+            const sliderInput = comparisonSlider.querySelector('.slider-input');
+            const root = document.documentElement;
 
-    .slider-line {
-        position: absolute;
-        left: var(--slider-value);
-        top: 0;
-        bottom: 0;
-        width: 4px;
-        background-color: white;
-        transform: translateX(-50%);
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-        pointer-events: none;
-    }
+            // Function to update the CSS variable and control the image clipping
+            function updateSlider(value) {
+                // Update the CSS variable which controls the width of the top image (.image-top) 
+                // and the left position of the line (.slider-line).
+                root.style.setProperty('--slider-value', `${value}%`);
+            }
 
-    .slider-handle {
-        position: absolute;
-        top: 50%;
-        left: 0;
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        background-color: white;
-        border: 4px solid #333;
-        color: #333;
-        font-size: 20px;
-        text-align: center;
-        line-height: 32px;
-        transform: translate(-50%, -50%);
-        pointer-events: none;
-    }
+            // Listen for input changes (drag on desktop, swipe on mobile)
+            sliderInput.addEventListener('input', (event) => {
+                updateSlider(event.target.value);
+            });
 
-    /* Image Labels (Fine) */
-    .image-label {
-        position: absolute;
-        padding: 5px 10px;
-        background-color: rgba(0, 0, 0, 0.7);
-        color: white;
-        font-weight: bold;
-        font-size: 0.8em;
-        border-radius: 4px;
-        z-index: 4;
-    }
+            // Initial set on load
+            updateSlider(sliderInput.value);
+        });
+    </script>
 
-    .label-before {
-        top: 10px;
-        left: 10px;
-    }
-
-    .label-after {
-        top: 10px;
-        right: 10px;
-    }
-</style>
+</body>
+</html>
